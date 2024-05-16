@@ -2,8 +2,7 @@
 obj-m += sch16xx.o
 
 # path to a compiled kernel
-#KPATH ?= /usr/src/linux-headers-$$(uname -r)
-KPATH = /usr/src/linux-headers-6.1.0-11-amd64
+KPATH ?= /usr/src/linux-headers-$$(uname -r)
 
 EXTRA_CFLAGS += $(ADD_EXTRA_CFLAGS) -Werror -Wall
 #EXTRA_CFLAGS += -DDEBUG
