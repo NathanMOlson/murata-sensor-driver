@@ -1,0 +1,53 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/iio/imu/murata,sch16xx.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Murata SCH16xx IMU
+
+maintainers:
+  - Mikko Pynnönen <mikko.pynnonen@murata.com>
+
+properties:
+  compatible:
+    enum:
+      - murata,sch16xx
+
+  reg:
+    maxItems: 1
+
+  murata,rate_dyn:
+    description: Setting of gyroscope (RATE) dynamic range.
+    $ref: /schemas/types.yaml#/definitions/string
+    enum: [DYN1, DYN2, DYN3, DYN4]
+
+  murata,accel_dyn:
+    description: Setting of accelerometer (ACC12) dynamic range
+    $ref: /schemas/types.yaml#/definitions/string
+    enum: [DYN1, DYN2, DYN3, DYN4]
+
+  murata,rate_filter:
+    description: Setting of gyroscope (RATE) filter
+    $ref: /schemas/types.yaml#/definitions/string
+    enum: [LPF0, LPF1, LPF2, LPF3, LPF4, LPF5, LPF6, LPF7]
+
+  murata,accel_filter:
+    description: Setting of accelerometer (ACC12) filter
+    $ref: /schemas/types.yaml#/definitions/string
+    enum: [LPF0, LPF1, LPF2, LPF3, LPF4, LPF5, LPF6, LPF7]
+        
+required:
+  - compatible
+  - reg
+
+examples:
+  - |
+    node@0 {
+        compatible = "murata,sch16xx";
+        reg = <0>;
+        murata,rate_dyn = "DYN1";
+        murata,accel_dyn = "DYN2";
+        murata,rate_filter = "LPF0";
+        murata,accel_filter = "LPF1";
+    };

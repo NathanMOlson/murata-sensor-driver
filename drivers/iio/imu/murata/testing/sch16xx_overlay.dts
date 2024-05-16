@@ -1,0 +1,27 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2835";
+
+	fragment@0 {
+		target = <&spidev0>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
+	fragment@1 {
+		target = <&spi0>;	
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			hpc1@0 {
+				compatible = "murata,sch16xx";
+				reg = <0>;
+				spi-max-frequency = <100000>;
+				sync-gpios = <&gpio 12 0>;
+			};
+		};
+	};
+};
