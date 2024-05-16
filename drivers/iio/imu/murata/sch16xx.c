@@ -517,7 +517,7 @@ static int sch16xx_read_single(struct sch16xx_dev *dev, unsigned int address, u3
 	response = be64_to_cpu(rx);
 	*data = (u32)((response & DATA_FIELD_MASK) >> DATA_FIELD_SHIFT);
 
-	dev_info(&spi->dev, "%s: request: %012llx resp: %012llx", __FUNCTION__, request, response);
+	// dev_info(&spi->dev, "%s: request: %012llx resp: %012llx", __FUNCTION__, request, response);
 
 	if (!sch16xx_is_crc_valid(spi, response)) {
 		dev_err(&spi->dev, "CRC error");
