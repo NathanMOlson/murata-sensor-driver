@@ -36,7 +36,12 @@ properties:
     description: Setting of accelerometer (ACC12) filter
     $ref: /schemas/types.yaml#/definitions/string
     enum: [LPF0, LPF1, LPF2, LPF3, LPF4, LPF5, LPF6, LPF7]
-        
+  
+  murata,vddio_1v8:
+    type: boolean
+    description: Set SPI_MISO and DRY buffer supply range to 1.8V. Must be
+      true if VDDIO supply voltage is 1.8V.
+
 required:
   - compatible
   - reg

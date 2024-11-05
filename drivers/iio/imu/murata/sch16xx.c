@@ -216,6 +216,7 @@ module_param(override_gyro_dyn_range, charp, 0660);
 /**
  * User interface control bit definitions
  */
+#define SPI_SUPPLY_1V8          0x4000
 #define FTREE_TDEL_2_5_MS       0x2000
 #define SYNC_TOC_TH_10_MS       0x0600
 #define SYNC_DEC_EN             0x0100
@@ -311,6 +312,7 @@ struct sch16xx_dev
 	const struct filter_params *acc12_filter;
 	const struct filter_params *rate_filter;
 	const char *product_code;
+	bool vddio_1v8;
 };
 
 struct dynamic_range_params {
@@ -747,14 +749,20 @@ static int sch16xx_init(struct iio_dev *indio_dev)
 			return ret;
 
 		// user interface control
+		value = FTREE_TDEL_2_5_MS | MISO_SR_CTRL | DRY_SR_CTRL;
+
 		// If sync_gpio is defined, enable SYNC operation
 		if (chip->sync_gpio != NULL) {
-			value = FTREE_TDEL_2_5_MS | SYNC_TOC_TH_10_MS | SYNC_DEC_EN |
-				SYNC_INTP_EN | MISO_SR_CTRL | DRY_SR_CTRL;
-			ret = sch16xx_write_single(chip, REG_CTRL_USER_IF, value, true);
-			if (ret)
-				return ret;
+			value |= SYNC_TOC_TH_10_MS | SYNC_DEC_EN | SYNC_INTP_EN;
 		}
+
+		// Set SPI_MISO and DRY buffer supply rate, if VDDIO is 1V8
+		if (chip->vddio_1v8)
+			value |= SPI_SUPPLY_1V8;
+
+		ret = sch16xx_write_single(chip, REG_CTRL_USER_IF, value, true);
+		if (ret)
+			return ret;
 
 		// set EN_SENSOR = 1
 		ret = sch16xx_write_single(chip, REG_CTRL_MODE, EN_SENSOR, true);
@@ -1303,6 +1311,8 @@ static int sch16xx_probe (struct spi_device *spi)
 	if (chip->sync_gpio == NULL) {
 		dev_warn(&spi->dev, "SYNC GPIO not defined, time domain performance degraded.");
 	}
+
+	chip->vddio_1v8 = of_property_read_bool(spi->dev.of_node, "murata,vddio_1v8");
 
 	{
 		unsigned int id;
