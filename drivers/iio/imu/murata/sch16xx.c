@@ -724,7 +724,7 @@ static int sch16xx_init(struct iio_dev *indio_dev)
 		// acc filter
 		filt = chip->acc12_filter;
 		value = filt->bit_value | filt->bit_value << 3 | filt->bit_value << 6;
-		ret = sch16xx_write_single(chip, REG_CTRL_FILT_RATE, value, true);
+		ret = sch16xx_write_single(chip, REG_CTRL_FILT_ACC12, value, true);
 		if (ret)
 			return ret;
 
