@@ -719,7 +719,6 @@ static int sch16xx_init(struct iio_dev *indio_dev)
 	int retry;
 	for (retry = 0; retry < 3; retry++) {
 
-		// soft reset
 		ret = sch16xx_reset(indio_dev);
 		if (ret)
 			return ret;
@@ -979,7 +978,7 @@ static ssize_t product_code_show(struct device *dev, struct device_attribute *at
 	if (chip->product_code == NULL) {
 		return sysfs_emit(buf, "Unknown (COMP_ID=0x%04x)", chip->comp_id);
 	} else {
-	return sysfs_emit(buf, "%s\n", chip->product_code);
+		return sysfs_emit(buf, "%s\n", chip->product_code);
 	}
 }
 
