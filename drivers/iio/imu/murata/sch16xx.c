@@ -313,6 +313,7 @@ struct sch16xx_dev
 	const struct filter_params *acc12_filter;
 	const struct filter_params *rate_filter;
 	const char *product_code;
+	uint16_t comp_id;
 	bool vddio_1v8;
 };
 
@@ -408,7 +409,7 @@ static const char* find_product_code(int id_value)
 		if (product_codes[i].id_value == id_value)
 			return product_codes[i].product_code;
 	}
-	return "Unknown";
+	return NULL;
 }
 
 #define SCH16XX_CHANNEL(_type, _modifier, _index, _address) {	\
@@ -972,7 +973,11 @@ static ssize_t product_code_show(struct device *dev, struct device_attribute *at
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct sch16xx_dev *chip = iio_priv(indio_dev);
 
+	if (chip->product_code == NULL) {
+		return sysfs_emit(buf, "Unknown (COMP_ID=0x%04x)", chip->comp_id);
+	} else {
 	return sysfs_emit(buf, "%s\n", chip->product_code);
+	}
 }
 
 static IIO_DEVICE_ATTR_RO(product_code, 0);
@@ -1336,7 +1341,7 @@ static int sch16xx_probe (struct spi_device *spi)
 		ret = sch16xx_read_single(chip, REG_COMP_ID, &id, false);
 		if (ret)
 			goto err;
-
+		chip->comp_id = id;
 		chip->product_code = find_product_code(id);
 	}
 
