@@ -301,6 +301,7 @@ struct sch16xx_dev
 {
 	struct spi_device *spi;
 	struct gpio_desc *sync_gpio;
+	struct gpio_desc *reset_gpio;
 	struct spi_transfer transfer[SCH16XX_MAX_TRANSFER_COUNT];
 	unsigned int ta;
 	__be64 tx[SCH16XX_MAX_TRANSFER_COUNT];
@@ -675,6 +676,13 @@ static int read_status_registers(struct iio_dev *indio_dev, bool *status_failed)
 static int sch16xx_reset(struct iio_dev *indio_dev)
 {
 	struct sch16xx_dev *chip = iio_priv(indio_dev);
+
+	if (chip->reset_gpio) {
+		gpiod_set_value_cansleep(chip->reset_gpio, 0);
+		msleep(2);
+		gpiod_set_value_cansleep(chip->reset_gpio, 1);
+		return 0;
+	}
 
 	return sch16xx_write_single(chip, REG_CTRL_RESET, SOFTRESET_CTRL, false);
 }
@@ -1309,7 +1317,16 @@ static int sch16xx_probe (struct spi_device *spi)
 		return PTR_ERR(chip->sync_gpio);
 	}
 	if (chip->sync_gpio == NULL) {
-		dev_warn(&spi->dev, "SYNC GPIO not defined, time domain performance degraded.");
+		dev_info(&spi->dev, "SYNC GPIO not defined, time domain performance degraded.");
+	}
+
+	chip->reset_gpio = devm_gpiod_get_optional(&spi->dev, "reset", GPIOD_OUT_HIGH);
+	if (IS_ERR(chip->sync_gpio)) {
+		dev_err(&spi->dev, "Error reserving EXTRESN GPIO");
+		return PTR_ERR(chip->sync_gpio);
+	}
+	if (chip->sync_gpio == NULL) {
+		dev_info(&spi->dev, "EXTRESN GPIO not defined, using soft reset instead.");
 	}
 
 	chip->vddio_1v8 = of_property_read_bool(spi->dev.of_node, "murata,vddio_1v8");
