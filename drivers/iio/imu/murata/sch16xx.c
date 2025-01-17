@@ -1350,11 +1350,6 @@ err:
 	return ret;
 }
 
-static int sch16xx_remove (struct spi_device *spi)
-{
-	return 0;
-}
-
 static const struct of_device_id sch16xx_match[] =
 {
 	{ .compatible = "murata,sch16xx" },
@@ -1371,7 +1366,6 @@ static struct spi_driver sch16xx_driver = {
 		.of_match_table = sch16xx_match,
 	},
 	.probe = sch16xx_probe,
-	.remove = sch16xx_remove,
 };
 
 module_spi_driver(sch16xx_driver);
