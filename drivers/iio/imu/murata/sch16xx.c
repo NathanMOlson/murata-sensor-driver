@@ -1328,11 +1328,11 @@ static int sch16xx_probe (struct spi_device *spi)
 	}
 
 	chip->reset_gpio = devm_gpiod_get_optional(&spi->dev, "reset", GPIOD_OUT_HIGH);
-	if (IS_ERR(chip->sync_gpio)) {
+	if (IS_ERR(chip->reset_gpio)) {
 		dev_err(&spi->dev, "Error reserving EXTRESN GPIO");
-		return PTR_ERR(chip->sync_gpio);
+		return PTR_ERR(chip->reset_gpio);
 	}
-	if (chip->sync_gpio == NULL) {
+	if (chip->reset_gpio == NULL) {
 		dev_info(&spi->dev, "EXTRESN GPIO not defined, using soft reset instead.");
 	}
 
