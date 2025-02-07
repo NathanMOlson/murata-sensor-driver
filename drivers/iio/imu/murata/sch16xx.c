@@ -382,7 +382,7 @@ static const struct filter_params *find_filter_params_hz(const struct filter_par
 
 		if (params[i].cutoff_hz == cutoff_freq) {
 			return &params[i];
-		}	
+		}
 	}
 
 	return NULL;
@@ -719,11 +719,6 @@ static int sch16xx_init(struct iio_dev *indio_dev)
 	int retry;
 	for (retry = 0; retry < 3; retry++) {
 
-		ret = sch16xx_reset(indio_dev);
-		if (ret)
-			return ret;
-		msleep(32);
-
 		// rate filter
 		// do not check the first frame CRC after reset
 		filt = chip->rate_filter;
@@ -799,10 +794,16 @@ static int sch16xx_init(struct iio_dev *indio_dev)
 		if (ret)
 			return ret;
 
-		if (status_failed)
+		if (status_failed) {
 			dev_warn(&indio_dev->dev, "Fault in status registers, start attept %d.", retry + 1);
-		else
+
+			ret = sch16xx_reset(indio_dev);
+			if (ret)
+				return ret;
+			msleep(32);
+		} else {
 			return 0;
+		}
 	}
 	dev_err(&indio_dev->dev, "Failed to start the sensor.");
 	return -EIO;
@@ -1337,6 +1338,12 @@ static int sch16xx_probe (struct spi_device *spi)
 	}
 
 	chip->vddio_1v8 = of_property_read_bool(spi->dev.of_node, "murata,vddio_1v8");
+
+	ret = sch16xx_reset(iio_dev);
+	if (ret)
+		return ret;
+
+	msleep(32);
 
 	{
 		unsigned int id;
