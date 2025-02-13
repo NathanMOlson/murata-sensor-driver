@@ -677,18 +677,13 @@ static int read_status_registers(struct iio_dev *indio_dev, bool *status_failed)
 	return 0;
 }
 
-static int sch16xx_reset(struct iio_dev *indio_dev)
+static void sch16xx_reset(struct iio_dev *indio_dev)
 {
 	struct sch16xx_dev *chip = iio_priv(indio_dev);
-
-	if (chip->reset_gpio) {
-		gpiod_set_value_cansleep(chip->reset_gpio, 0);
-		msleep(2);
-		gpiod_set_value_cansleep(chip->reset_gpio, 1);
-		return 0;
-	}
-
-	return sch16xx_write_single(chip, REG_CTRL_RESET, SOFTRESET_CTRL, false);
+	
+	gpiod_set_value_cansleep(chip->reset_gpio, 0);
+	msleep(2);
+	gpiod_set_value_cansleep(chip->reset_gpio, 1);
 }
 
 static int sch16xx_init(struct iio_dev *indio_dev)
@@ -797,9 +792,7 @@ static int sch16xx_init(struct iio_dev *indio_dev)
 		if (status_failed) {
 			dev_warn(&indio_dev->dev, "Fault in status registers, start attept %d.", retry + 1);
 
-			ret = sch16xx_reset(indio_dev);
-			if (ret)
-				return ret;
+			sch16xx_reset(indio_dev);
 			msleep(32);
 		} else {
 			return 0;
@@ -1328,21 +1321,16 @@ static int sch16xx_probe (struct spi_device *spi)
 		dev_info(&spi->dev, "SYNC GPIO not defined, time domain performance degraded.");
 	}
 
-	chip->reset_gpio = devm_gpiod_get_optional(&spi->dev, "reset", GPIOD_OUT_HIGH);
+	chip->reset_gpio = devm_gpiod_get(&spi->dev, "reset", GPIOD_OUT_HIGH);
 	if (IS_ERR(chip->reset_gpio)) {
-		dev_err(&spi->dev, "Error reserving EXTRESN GPIO");
+		dev_err(&spi->dev, "Error reserving reset-gpio.");
 		return PTR_ERR(chip->reset_gpio);
-	}
-	if (chip->reset_gpio == NULL) {
-		dev_info(&spi->dev, "EXTRESN GPIO not defined, using soft reset instead.");
 	}
 
 	chip->vddio_1v8 = of_property_read_bool(spi->dev.of_node, "murata,vddio_1v8");
 
-	ret = sch16xx_reset(iio_dev);
-	if (ret)
-		return ret;
-
+	sch16xx_reset(iio_dev);
+	
 	msleep(32);
 
 	{
