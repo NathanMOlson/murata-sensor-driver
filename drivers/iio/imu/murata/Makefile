@@ -1,20 +1,15 @@
 
 obj-m += sch16xx.o
 
-# path to a compiled kernel
-KPATH ?= /usr/src/linux-headers-$$(uname -r)
-
-EXTRA_CFLAGS += $(ADD_EXTRA_CFLAGS) -Werror -Wall
-#EXTRA_CFLAGS += -DDEBUG
-
-ARCH = arm64
-#CROSS_COMPILE = arm-linux-gnueabihf-
-
-MAKE_ARCH = $(MAKE) C=2 ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE)
-#MAKE_ARCH = make
+SRC := $(shell pwd)
 
 all:
-	$(MAKE_ARCH) -C $(KPATH) M=$(PWD) modules
+	$(MAKE) -C $(KERNEL_SRC) M=$(SRC)
+
+modules_install:
+	$(MAKE) -C $(KERNEL_SRC) M=$(SRC) modules_install
 
 clean:
-	$(MAKE_ARCH) -C $(KPATH) M=$(PWD) clean
+	rm -f *.o *~ core .depend .*.cmd *.ko *.mod.c
+	rm -f Module.markers Module.symvers modules.order
+	rm -rf .tmp_versions Modules.symvers
