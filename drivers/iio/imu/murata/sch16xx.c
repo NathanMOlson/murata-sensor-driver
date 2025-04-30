@@ -544,23 +544,23 @@ static int sch16xx_read_single(struct sch16xx_dev *dev, unsigned int address, u3
 		}
 	};
 
-	// ret = spi_sync_transfer(spi, t, ARRAY_SIZE(t));
-	// if (ret)
-	// 	return ret;
+	ret = spi_sync_transfer(spi, t, ARRAY_SIZE(t));
+	if (ret)
+		return ret;
 
 	response = be64_to_cpu(rx);
 	*data = (u32)((response & DATA_FIELD_MASK) >> DATA_FIELD_SHIFT);
 
 	//dev_dbg(&spi->dev, "%s: addr: 0x%02x request: %012llx resp: %012llx", __FUNCTION__, address, request, response);
 
-	// if (!sch16xx_is_crc_valid(spi, response)) {
-	// 	dev_err(&spi->dev, "CRC error");
-	// 	return -EPROTO;
-	// }
-	// if (!sch16xx_is_response_valid(spi, response, request)) {
-	// 	dev_err(&spi->dev, "TA SA mismatch");
-	// 	return -EPROTO;
-	// }
+	if (!sch16xx_is_crc_valid(spi, response)) {
+		dev_err(&spi->dev, "CRC error");
+		return -EPROTO;
+	}
+	if (!sch16xx_is_response_valid(spi, response, request)) {
+		dev_err(&spi->dev, "TA SA mismatch");
+		return -EPROTO;
+	}
 	return 0;
 }
 
@@ -587,17 +587,17 @@ static int sch16xx_write_single(struct sch16xx_dev *chip, unsigned int address, 
 		},
 	};
 
-	// ret = spi_sync_transfer(spi, t, ARRAY_SIZE(t));
-	// if (ret)
-	// 	return ret;
+	ret = spi_sync_transfer(spi, t, ARRAY_SIZE(t));
+	if (ret)
+		return ret;
 
 	response = be64_to_cpu(rx);
 
-	//dev_dbg(&spi->dev, "%s: addr: 0x%02x data: 0x%04x request: %012llx resp: %012llx", __FUNCTION__,
-	//	address, data, request, response);
+	dev_dbg(&spi->dev, "%s: addr: 0x%02x data: 0x%04x request: %012llx resp: %012llx", __FUNCTION__,
+		address, data, request, response);
 
-	// if (check_crc && !sch16xx_is_crc_valid(spi, response))
-	// 	return -EPROTO;
+	if (check_crc && !sch16xx_is_crc_valid(spi, response))
+		return -EPROTO;
 
 	return 0;
 }
