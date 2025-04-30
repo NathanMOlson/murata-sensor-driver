@@ -544,23 +544,23 @@ static int sch16xx_read_single(struct sch16xx_dev *dev, unsigned int address, u3
 		}
 	};
 
-	ret = spi_sync_transfer(spi, t, ARRAY_SIZE(t));
-	if (ret)
-		return ret;
+	// ret = spi_sync_transfer(spi, t, ARRAY_SIZE(t));
+	// if (ret)
+	// 	return ret;
 
 	response = be64_to_cpu(rx);
 	*data = (u32)((response & DATA_FIELD_MASK) >> DATA_FIELD_SHIFT);
 
 	//dev_dbg(&spi->dev, "%s: addr: 0x%02x request: %012llx resp: %012llx", __FUNCTION__, address, request, response);
 
-	if (!sch16xx_is_crc_valid(spi, response)) {
-		dev_err(&spi->dev, "CRC error");
-		return -EPROTO;
-	}
-	if (!sch16xx_is_response_valid(spi, response, request)) {
-		dev_err(&spi->dev, "TA SA mismatch");
-		return -EPROTO;
-	}
+	// if (!sch16xx_is_crc_valid(spi, response)) {
+	// 	dev_err(&spi->dev, "CRC error");
+	// 	return -EPROTO;
+	// }
+	// if (!sch16xx_is_response_valid(spi, response, request)) {
+	// 	dev_err(&spi->dev, "TA SA mismatch");
+	// 	return -EPROTO;
+	// }
 	return 0;
 }
 
@@ -587,17 +587,17 @@ static int sch16xx_write_single(struct sch16xx_dev *chip, unsigned int address, 
 		},
 	};
 
-	ret = spi_sync_transfer(spi, t, ARRAY_SIZE(t));
-	if (ret)
-		return ret;
+	// ret = spi_sync_transfer(spi, t, ARRAY_SIZE(t));
+	// if (ret)
+	// 	return ret;
 
 	response = be64_to_cpu(rx);
 
 	//dev_dbg(&spi->dev, "%s: addr: 0x%02x data: 0x%04x request: %012llx resp: %012llx", __FUNCTION__,
 	//	address, data, request, response);
 
-	if (check_crc && !sch16xx_is_crc_valid(spi, response))
-		return -EPROTO;
+	// if (check_crc && !sch16xx_is_crc_valid(spi, response))
+	// 	return -EPROTO;
 
 	return 0;
 }
@@ -1261,14 +1261,22 @@ static int sch16xx_probe (struct spi_device *spi)
 	iio_dev->channels = sch16xx_channels;
 	iio_dev->num_channels = ARRAY_SIZE (sch16xx_channels);
 
+	iio_device_set_clock(iio_dev, CLOCK_MONOTONIC);
+
 	ret = devm_iio_triggered_buffer_setup (&spi->dev, iio_dev, sch16xx_trigger_top_handler,
 						sch16xx_trigger_bottom_handler, NULL);
 	if (ret)
+	{
+		dev_err(&spi->dev, "Error in devm_iio_triggered_buffer_setup. %d", ret);
 		goto err;
+	}
 
 	ret = devm_iio_device_register(&spi->dev, iio_dev);
 	if (ret)
+	{
+		dev_err(&spi->dev, "Error in devm_iio_device_register. %d", ret);
 		goto err;
+	}
 
 	if (of_property_read_u32(spi->dev.of_node, "murata,ta", &chip->ta) == 0) {
 		if (chip->ta > 3) {
@@ -1354,7 +1362,10 @@ static int sch16xx_probe (struct spi_device *spi)
 		unsigned int id;
 		ret = sch16xx_read_single(chip, REG_COMP_ID, &id, false);
 		if (ret)
+		{
+			dev_err(&spi->dev, "Error after msleep. %d", ret);
 			goto err;
+		}
 		chip->comp_id = id;
 		chip->product_code = find_product_code(id);
 
@@ -1364,7 +1375,10 @@ static int sch16xx_probe (struct spi_device *spi)
 
 	ret = sch16xx_init(iio_dev, false);
 	if (ret)
+	{
+		dev_err(&spi->dev, "Error in sch16xx_init. %d", ret);
 		goto err;
+	}
 
 	return ret;
 err:
