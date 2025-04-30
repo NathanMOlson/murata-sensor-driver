@@ -593,8 +593,8 @@ static int sch16xx_write_single(struct sch16xx_dev *chip, unsigned int address, 
 
 	response = be64_to_cpu(rx);
 
-	dev_dbg(&spi->dev, "%s: addr: 0x%02x data: 0x%04x request: %012llx resp: %012llx", __FUNCTION__,
-		address, data, request, response);
+	// dev_dbg(&spi->dev, "%s: addr: 0x%02x data: 0x%04x request: %012llx resp: %012llx", __FUNCTION__,
+	// 	address, data, request, response);
 
 	if (check_crc && !sch16xx_is_crc_valid(spi, response))
 		return -EPROTO;
